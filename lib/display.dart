@@ -21,7 +21,7 @@ final class PresentationDisplay {
 
   SendPort? _sendPort;
 
-  Stream get events => _receivePort.asBroadcastStream();
+  Stream? eventsStream;
 
   Future<void> run({required String entryPointFunctionName, required String tag}) async {
     if (_isActive) {
@@ -43,9 +43,9 @@ final class PresentationDisplay {
       _tag = null;
       _isActive = false;
     }
-    _sendPort = await events
+    _sendPort = await eventsStream!
         .firstWhere((element) => element is SendPort)
-        .timeout(const Duration(seconds: 5), onTimeout: () => null);
+        .timeout(const Duration(seconds: 10), onTimeout: () => null);
   }
 
   Future<void> send(dynamic message) async {
