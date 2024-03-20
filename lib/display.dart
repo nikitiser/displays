@@ -43,6 +43,7 @@ final class PresentationDisplay {
       _tag = null;
       _isActive = false;
     }
+    eventsStream = _receivePort.asBroadcastStream();
     _sendPort = await eventsStream!
         .firstWhere((element) => element is SendPort)
         .timeout(const Duration(seconds: 10), onTimeout: () => null);
@@ -56,6 +57,7 @@ final class PresentationDisplay {
     if (!_isActive) {
       return;
     }
+    eventsStream = null;
     final res = await DisplaysPluginApi().removeDisplay(_tag!);
     if (res) {
       _tag = null;
