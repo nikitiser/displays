@@ -17,17 +17,19 @@ final class PresentationDisplay {
 
   PresentationDisplay(this.displayId);
 
-  final _receivePort = ReceivePort();
+  ReceivePort? _receivePort;
 
   SendPort? _sendPort;
 
-  Stream? eventsStream;
+  StreamController? eventsStream;
 
   Future<void> run({required String entryPointFunctionName, required String tag}) async {
     if (_isActive) {
       return;
     }
-    IsolateNameServer.registerPortWithName(_receivePort.sendPort, tag);
+    _receivePort = ReceivePort();
+    eventsStream = StreamController.broadcast();
+    IsolateNameServer.registerPortWithName(_receivePort!.sendPort, tag);
     final SetDisplayRequest request = SetDisplayRequest(
       displayId: displayId,
       tag: tag,
@@ -43,10 +45,12 @@ final class PresentationDisplay {
       _tag = null;
       _isActive = false;
     }
-    eventsStream = _receivePort.asBroadcastStream();
-    _sendPort = await eventsStream!
+    _receivePort!.listen((dynamic message) {
+      eventsStream!.add(message);
+    });
+    _sendPort = await eventsStream!.stream
         .firstWhere((element) => element is SendPort)
-        .timeout(const Duration(seconds: 10), onTimeout: () => null);
+        .timeout(const Duration(seconds: 10), onTimeout: () => null); //TODO 
   }
 
   Future<void> send(dynamic message) async {
@@ -57,6 +61,9 @@ final class PresentationDisplay {
     if (!_isActive) {
       return;
     }
+    _receivePort!.close();
+    eventsStream!.close();
+    _receivePort = null;
     eventsStream = null;
     final res = await DisplaysPluginApi().removeDisplay(_tag!);
     if (res) {
