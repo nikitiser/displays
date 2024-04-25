@@ -170,14 +170,15 @@ class DisplaysPlugin: FlutterPlugin, DisplaysPluginApi, ActivityAware {
   }
 
   override fun onDetachedFromActivityForConfigChanges() {
-    TODO("Not yet implemented")
+
   }
 
   override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
-    TODO("Not yet implemented")
+    this.context = binding.activity
+    this.displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
   }
 
   override fun onDetachedFromActivity() {
-    TODO("Not yet implemented")
+    displayManager = null
   }
 }
